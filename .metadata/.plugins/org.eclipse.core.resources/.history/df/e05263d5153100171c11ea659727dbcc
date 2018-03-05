@@ -1,0 +1,32 @@
+import java.util.ArrayList;
+import java.util.PriorityQueue;
+
+public class PathFinder {
+	private int[][] background;
+	private Background[][] backgroundTiles;
+	private Background start, end;
+	private PriorityQueue openList;
+	private ArrayList<Background> closedList;
+	
+	public PathFinder(int[][] bg, Background start, Background end){
+		background = bg;
+		this.start = start;
+		this.end = end;
+	}
+	
+	public void addNeighbor(Background current, boolean curCorners){
+		int x = current.getXIndex();
+		int y = current.getYIndex();
+		for(int dy = -1; dy <= 1; dy++){
+			for(int dx = 1; dy >= -1; dx--){
+				Background neighbor = backgroundTiles[x + dx][y + dy];
+				if(!neighbor.isCollidable()){
+					if(!openList.contains(neighbor)){
+						openList.add(neighbor);
+					} else if()
+				}
+			}
+		}
+	}
+
+}

@@ -1,0 +1,72 @@
+
+public class Collision {
+	
+	public Collision(){
+		
+	}
+	
+	public boolean AABBIntersect(Sprite a, Sprite b){
+		if(a.getX() > b.getX() + b.getWidth()){
+			return false;
+		}
+		if(a.getX() + a.getWidth() < b.getX()){
+			return false;
+		}
+		if(a.getY() > b.getY() + b.getHeight()){
+			return false;
+		}
+		if(a.getY() + a.getHeight() < b.getY()){
+			return false;
+		}
+		return true;
+	}
+	
+	public boolean AABBIntersect(Sprite a, Projectile p){
+		if(a.getX() > p.getX() + p.getWidth() - 8){
+			return false;
+		}
+		if(a.getX() + a.getWidth() < p.getX() + 8){
+			return false;
+		}
+		if(a.getY() > p.getY() + p.getHeight() - 5){
+			return false;
+		}
+		if(a.getY() + a.getHeight() < p.getY() + 5){
+			return false;
+		}
+		return true;
+	}
+	
+	public boolean AABBIntersect(Sprite a, Camera c){
+		if(a.getX() > c.getX() + c.getW()){
+			return false;
+		}
+		if(a.getX() + a.getWidth() < c.getX()){
+			return false;
+		}
+		if(a.getY() > c.getY() + c.getH()){
+			return false;
+		}
+		if(a.getY() + a.getHeight() < c.getY()){
+			return false;
+		}
+		return true;
+	}
+	
+	public boolean AABBIntersect(Sprite a, Background b){
+		if(a.getX() > (b.getXIndex() * b.getWidth()) + b.getWidth()){
+			return false;
+		}
+		if(a.getX() + a.getWidth() < (b.getXIndex() * b.getWidth())){
+			return false;
+		}
+		if(a.getY() > (b.getYIndex() * b.getHeight()) + b.getHeight()){
+			return false;
+		}
+		if(a.getY() + a.getHeight() < (b.getYIndex() * b.getHeight())){
+			return false;
+		}
+		return true;
+	}
+
+}

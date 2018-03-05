@@ -1,0 +1,66 @@
+
+public class Enemy extends Sprite{
+	
+	public int x;
+	public int y;
+	public int z;
+	public int xIndex;
+	public int yIndex;
+	public int width;
+	public int height;
+	public int currentImage;
+	public int health;
+	public boolean topCollide;
+	public boolean bottomCollide;
+	public boolean rightCollide;
+	public boolean leftCollide;
+	
+	public Enemy(int X, int Y, int[] spriteSize, int img, int hp){
+		super(X, Y, spriteSize, img);
+		
+		x = X;
+		y = Y;
+		z = 0;
+		width = spriteSize[0];
+		height = spriteSize[1];
+		xIndex = (int) Math.floor((X + (width / 2)) / width);
+		yIndex = (int) Math.floor((Y + (height / 2)) / height);
+		currentImage = img;
+		health = hp;
+	}
+
+	public int getX(){return x;}
+	public int getY(){return y;}
+	public int getZ(){return z;}
+	public int getXIndex(){return xIndex;}
+	public int getYIndex(){return yIndex;}
+	public int getWidth(){return width;}
+	public int getHeight(){return height;}
+	public int getCurrentImage(){return currentImage;}
+	public int getHealth(){return health;}
+	public boolean getTopCollide(){return topCollide;}
+	public boolean getBottomCollide(){return bottomCollide;}
+	public boolean getRightCollide(){return rightCollide;}
+	public boolean getLeftCollide(){return leftCollide;}
+	
+	public void setX(int a){x = a;}
+	public void setY(int b){y = b;}
+	public void setZ(int newZ){z = newZ;}
+	public void setWidth(int w){width = w;}
+	public void setHeight(int h){height = h;}
+	public void setCurrentImage(int img){currentImage = img;}
+	public void setHealt(int hp){health = hp;}
+	public void setTopCollide(boolean col){topCollide = col;}
+	public void setBottomCollide(boolean col){bottomCollide = col;}
+	public void setRightCollide(boolean col){rightCollide = col;}
+	public void setLeftCollide(boolean col){leftCollide = col;}
+	
+	public void update(int X, int Y, int zv, int img, int hp){
+		x = X;
+		y = Y - zv;
+		xIndex = (int) Math.floor((X + (width / 2)) / width);
+		yIndex = (int) Math.floor((Y + (height / 2)) / height);
+		currentImage = img;
+		health = hp;
+	}
+}

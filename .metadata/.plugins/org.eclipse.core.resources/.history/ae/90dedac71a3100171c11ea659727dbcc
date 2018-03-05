@@ -1,0 +1,14 @@
+
+public class BackgroundGrid {
+	
+	private BackgroundNode[][] myNodes;
+	private BackgroundNode start;
+	private BackgroundNode end;
+	private PathFinder pathFinder;
+	
+	public BackgroundGrid(int width, int height){
+		this.myNodes = new BackgroundNode[width][height];
+		pathFinder = new PathFinder(this, start, end);
+	}
+
+}

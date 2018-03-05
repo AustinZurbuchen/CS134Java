@@ -1,0 +1,391 @@
+import com.jogamp.nativewindow.WindowClosingProtocol;
+import com.jogamp.opengl.*;
+import com.jogamp.newt.event.KeyEvent;
+import com.jogamp.newt.event.KeyListener;
+import com.jogamp.newt.opengl.GLWindow;
+
+import java.io.*;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+
+public class JavaTemplate {
+    // Set this to true to make the game loop exit.
+    private static boolean shouldExit;
+
+    // The previous frame's keyboard state.
+    private static boolean kbPrevState[] = new boolean[256];
+
+    // The current frame's keyboard state.
+    private static boolean kbState[] = new boolean[256];
+
+    // Position of the sprite.
+    private static int[] spritePos = new int[] { 10, 50 };
+
+    // Texture for the sprite.
+    private static int spriteDirt;
+    private static int spriteMagma;
+    private static int spriteTex;
+    private static int spriteShadow;
+    private static int spriteTexRight1;
+    private static int spriteTexRight2;
+    private static int spriteTexRight3;
+    private static int spriteTexLeft1;
+    private static int spriteTexLeft2;
+    private static int spriteTexLeft3;
+    
+    // Texture Arrays
+    private static int[] rightArray;
+    private static int[] leftArray;
+    
+    // Size of the sprite.
+    private static int[] spriteSize = new int[2];
+
+    public static void main(String[] args) {
+        GLProfile gl2Profile;
+
+        try {
+            // Make sure we have a recent version of OpenGL
+            gl2Profile = GLProfile.get(GLProfile.GL2);
+        }
+        catch (GLException ex) {
+            System.out.println("OpenGL max supported version is too low.");
+            System.exit(1);
+            return;
+        }
+
+        // Create the window and OpenGL context.
+        GLWindow window = GLWindow.create(new GLCapabilities(gl2Profile));
+        window.setSize(800, 600);
+        window.setTitle("Java Template");
+        window.setVisible(true);
+        window.setDefaultCloseOperation(
+                WindowClosingProtocol.WindowClosingMode.DISPOSE_ON_CLOSE);
+        window.addKeyListener(new KeyListener() {
+            @Override
+            public void keyPressed(KeyEvent keyEvent) {
+                if (keyEvent.isAutoRepeat()) {
+                    return;
+                }
+                kbState[keyEvent.getKeyCode()] = true;
+            }
+
+            @Override
+            public void keyReleased(KeyEvent keyEvent) {
+                if (keyEvent.isAutoRepeat()) {
+                    return;
+                }
+                kbState[keyEvent.getKeyCode()] = false;
+            }
+        });
+
+        // Setup OpenGL state.
+        window.getContext().makeCurrent();
+        GL2 gl = window.getGL().getGL2();
+        gl.glViewport(0, 0, 800, 600);
+        gl.glMatrixMode(GL2.GL_PROJECTION);
+        gl.glOrtho(0, 800, 600, 0, 0, 100);
+        gl.glEnable(GL2.GL_TEXTURE_2D);
+        gl.glEnable(GL2.GL_BLEND);
+        gl.glBlendFunc(GL2.GL_SRC_ALPHA, GL2.GL_ONE_MINUS_SRC_ALPHA);
+
+		// Game initialization goes here.
+        spriteDirt = glTexImageTGAFile(gl, "backgrounds\\minecraft_dirt.tga", spriteSize);
+        spriteMagma = glTexImageTGAFile(gl, "backgrounds\\minecraft_magma.tga", spriteSize);
+		spriteTex = glTexImageTGAFile(gl, "sprites\\MegamanSprite.tga", spriteSize);
+		spriteShadow = glTexImageTGAFile(gl, "sprites\\SpriteShadow.tga", spriteSize);
+		spriteTexRight1 = glTexImageTGAFile(gl, "sprites\\animation\\right\\MegamanRightFrame1.tga", spriteSize);
+		spriteTexRight2 = glTexImageTGAFile(gl, "sprites\\animation\\right\\MegamanRightFrame2.tga", spriteSize);
+		spriteTexRight3 = glTexImageTGAFile(gl, "sprites\\animation\\right\\MegamanRightFrame3.tga", spriteSize);
+		spriteTexLeft1 = glTexImageTGAFile(gl, "sprites\\animation\\left\\MegamanLeftFrame1.tga", spriteSize);
+		spriteTexLeft2 = glTexImageTGAFile(gl, "sprites\\animation\\left\\MegamanLeftFrame2.tga", spriteSize);
+		spriteTexLeft3 = glTexImageTGAFile(gl, "sprites\\animation\\left\\MegamanLeftFrame3.tga", spriteSize);
+		
+		// Fill texture arrays
+		rightArray = new int[] {spriteTexRight1, spriteTexRight2, spriteTexRight3, spriteTexRight3};
+		leftArray = new int[] {spriteTexLeft1, spriteTexLeft2, spriteTexLeft3, spriteTexLeft3};
+		
+		// Setting up variables
+		Camera camera = new Camera(0, 0, 800, 600);
+		int background[][] = new int[40][40];
+		int startTileX = 0;
+		int startTileY = 0;
+		int endTileX = 0;
+		int endTileY = 0;
+		int counter = 0;
+		int direction = 0;
+		double elapsedTime = 0;
+		int currentImage = 0;
+		int spriteWidth = spriteSize[0];
+		int spriteHeight = spriteSize[1];
+		int x = (camera.getW() / 2) - spriteWidth / 2;
+		int y = (camera.getH() / 2) - spriteHeight / 2;
+		int z = 0;
+		int gameWidth = 40 * spriteWidth;
+		int gameHeight = 40 * spriteHeight;
+		boolean isGrounded = true;
+		double zVelocity = 0;
+		int jumpVelocity = 15;
+		double zGravity = -1;
+		
+		// Initializing background array
+		for(int i = 0; i < 40; i++){
+			for(int j = 0; j < 40; j++){
+				if(i % 2 == 0){
+					background[i][j] = spriteDirt;
+				} else {
+					background[i][j] = spriteMagma;
+				}
+			}
+		}
+		
+        // The game loop
+        long lastFrameNS;
+        long lastPhysicsFrameMS = 0;
+        long curPhysicsFrameMS;
+        long physicsDeltaMS = 10;
+        long curFrameNS = System.nanoTime();
+        long curFrameMS = curFrameNS / 1000000;
+        while (!shouldExit) {
+            System.arraycopy(kbState, 0, kbPrevState, 0, kbState.length);
+            lastFrameNS = curFrameNS;
+            curFrameNS = System.nanoTime();
+            long deltaTimeMS = (curFrameNS - lastFrameNS) / 1000000;
+
+            // Actually, this runs the entire OS message pump.
+            window.display();
+            
+            if (!window.isVisible()) {
+                shouldExit = true;
+                break;
+            }
+            
+            // Physics Update
+            do{
+            	curPhysicsFrameMS = System.nanoTime() / 1000000;
+            	//physicsDeltaMS = curPhysicsFrameMS - lastPhysicsFrameMS;
+            	// 1. Physics movement
+            	// Jump
+            	z += zVelocity;
+            	zVelocity += zGravity;
+            	if(z <= 0){
+            		z = 0;
+            		zVelocity = 0;
+            		isGrounded = true;
+            	}
+            	
+//            	if(isGrounded){
+//            		yVelocity = 0;
+//            	}
+//            	if(isGrounded && kbState[KeyEvent.VK_SPACE]){
+//            		isGrounded = false;
+//            		yVelocity = jumpVelocity;
+//            	}
+//            	//System.out.println("isGounded: " + isGrounded);
+//            	//System.out.println("yPos: " + yPos);
+//            	//System.out.println("DeltaTime: " + physicsDeltaMS);
+//            	//System.out.println("yVelocity: " + yVelocity);
+//            	yVelocity += yGravity * physicsDeltaMS;
+//            	yPos += yVelocity * physicsDeltaMS;
+            	
+            	
+            	// 2. Physics collision detection
+            	// 3. Physics collision resolution
+            	lastPhysicsFrameMS += physicsDeltaMS;
+            	//lastPhysicsFrameMS = curPhysicsFrameMS;
+            } while(lastPhysicsFrameMS + physicsDeltaMS < curFrameMS);
+
+            // Game logic goes here.
+            if (kbState[KeyEvent.VK_ESCAPE]) {
+                shouldExit = true;
+            }            
+            if(kbState[KeyEvent.VK_W]){
+            	direction = 0;
+            	y -= (1 * deltaTimeMS) / 4;
+            }
+            if(kbState[KeyEvent.VK_A]){
+            	direction = 1;
+            	x -= (1 * deltaTimeMS) / 4;
+            }
+            if(kbState[KeyEvent.VK_S]){
+            	direction = 1;
+            	y += (1 * deltaTimeMS) / 4;
+            }
+            if(kbState[KeyEvent.VK_D]){
+            	direction = 0;
+            	x += (1 * deltaTimeMS) / 4;
+            }
+            if(kbState[KeyEvent.VK_SPACE] && isGrounded){
+        		zVelocity = jumpVelocity;
+        		isGrounded = false;
+        	}
+            
+            // Keep sprite on screen
+            if(x < 0){
+            	x = 0;
+            }
+            if(x > (gameWidth - (spriteWidth))){
+            	x = (gameWidth - (spriteWidth));
+            }
+            if(y < 0){
+            	y = 0;
+            }
+            if(y > (gameHeight - (spriteHeight))){
+            	y = (gameHeight - (spriteHeight));
+            }
+            
+            // Camera follows sprite
+            camera.setX(x + spriteWidth - camera.getW() / 2);
+            camera.setY(y + spriteHeight - camera.getH() / 2);
+            if(camera.getX() < 0){
+            	camera.setX(0);
+            }
+            if(camera.getY() < 0){
+            	camera.setY(0);
+            }
+            if(camera.getX() > (gameWidth - camera.getW())){
+            	camera.setX((gameWidth - camera.getW()));
+            }
+            if(camera.getY() > (gameHeight - camera.getH())){
+            	camera.setY((gameHeight - camera.getH()));
+            }
+
+    		if (counter > 2) {
+    			counter = 0;
+    		}
+    		else
+    			if (elapsedTime > 100) {
+    				counter++;
+    				elapsedTime = 0;
+    			}
+    		if (direction == 0) {
+    			currentImage = rightArray[counter];
+    		}
+    		else if (direction == 1) {
+    			currentImage = leftArray[counter];
+    		}
+    		else
+    			currentImage = spriteTex;
+            
+            gl.glClearColor(0, 0, 0, 1);
+            gl.glClear(GL2.GL_COLOR_BUFFER_BIT);
+
+            // Draw background
+            startTileX = (int) Math.floor(camera.getX() / spriteSize[0]);
+            startTileY = (int) Math.floor(camera.getY() / spriteSize[1]);
+            endTileX = (int) Math.ceil(((camera.getX() + camera.getW()) / spriteSize[0]));
+            endTileY = (int) Math.ceil(((camera.getY() + camera.getH()) / spriteSize[1]));
+            
+            for (int i = Math.max(0, startTileY); i <= Math.min(endTileY, 39); i++){
+            	for(int j = Math.max(0, startTileX); j <= Math.min(endTileX, 39); j++){
+            		drawSprite(gl, background[i][j], (j * spriteWidth), (i * spriteHeight), spriteWidth, spriteHeight, camera);
+            	}
+            }
+            
+            // Draw the sprite
+            drawSprite(gl, spriteShadow, x, y + (z / 3) + 2 , spriteWidth, spriteHeight, camera);
+            drawSprite(gl, currentImage, x, y - z, spriteWidth, spriteHeight, camera);
+            
+            lastFrameNS = curFrameNS;
+            elapsedTime += (1 + deltaTimeMS);
+            direction = 2;
+        }
+    }
+
+    public static void drawSprite(GL2 gl, int tex, int x, int y, int w, int h, Camera cam){
+    	glDrawSprite(gl, tex, (x - cam.getX()), (y - cam.getY()), w, h);
+    }
+    
+    // Load a file into an OpenGL texture and return that texture.
+    public static int glTexImageTGAFile(GL2 gl, String filename, int[] out_size) {
+        final int BPP = 4;
+
+        DataInputStream file = null;
+        try {
+            // Open the file.
+            file = new DataInputStream(new FileInputStream(filename));
+        } catch (FileNotFoundException ex) {
+            System.err.format("File: %s -- Could not open for reading.", filename);
+            return 0;
+        }
+
+        try {
+            // Skip first two bytes of data we don't need.
+            file.skipBytes(2);
+
+            // Read in the image type.  For our purposes the image type
+            // should be either a 2 or a 3.
+            int imageTypeCode = file.readByte();
+            if (imageTypeCode != 2 && imageTypeCode != 3) {
+                file.close();
+                System.err.format("File: %s -- Unsupported TGA type: %d", filename, imageTypeCode);
+                return 0;
+            }
+
+            // Skip 9 bytes of data we don't need.
+            file.skipBytes(9);
+
+            int imageWidth = Short.reverseBytes(file.readShort());
+            int imageHeight = Short.reverseBytes(file.readShort());
+            int bitCount = file.readByte();
+            file.skipBytes(1);
+
+            // Allocate space for the image data and read it in.
+            byte[] bytes = new byte[imageWidth * imageHeight * BPP];
+
+            // Read in data.
+            if (bitCount == 32) {
+                for (int it = 0; it < imageWidth * imageHeight; ++it) {
+                    bytes[it * BPP + 0] = file.readByte();
+                    bytes[it * BPP + 1] = file.readByte();
+                    bytes[it * BPP + 2] = file.readByte();
+                    bytes[it * BPP + 3] = file.readByte();
+                }
+            } else {
+                for (int it = 0; it < imageWidth * imageHeight; ++it) {
+                    bytes[it * BPP + 0] = file.readByte();
+                    bytes[it * BPP + 1] = file.readByte();
+                    bytes[it * BPP + 2] = file.readByte();
+                    bytes[it * BPP + 3] = -1;
+                }
+            }
+
+            file.close();
+
+            // Load into OpenGL
+            int[] texArray = new int[1];
+            gl.glGenTextures(1, texArray, 0);
+            int tex = texArray[0];
+            gl.glBindTexture(GL2.GL_TEXTURE_2D, tex);
+            gl.glTexImage2D(
+                    GL2.GL_TEXTURE_2D, 0, GL2.GL_RGBA, imageWidth, imageHeight, 0,
+                    GL2.GL_BGRA, GL2.GL_UNSIGNED_BYTE, ByteBuffer.wrap(bytes));
+            gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MIN_FILTER, GL2.GL_NEAREST);
+            gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAG_FILTER, GL2.GL_NEAREST);
+
+            out_size[0] = imageWidth;
+            out_size[1] = imageHeight;
+            return tex;
+        }
+        catch (IOException ex) {
+            System.err.format("File: %s -- Unexpected end of file.", filename);
+            return 0;
+        }
+    }
+
+    public static void glDrawSprite(GL2 gl, int tex, int x, int y, int w, int h) {
+        gl.glBindTexture(GL2.GL_TEXTURE_2D, tex);
+        gl.glBegin(GL2.GL_QUADS);
+        {
+            gl.glColor3ub((byte)-1, (byte)-1, (byte)-1);
+            gl.glTexCoord2f(0, 1);
+            gl.glVertex2i(x, y);
+            gl.glTexCoord2f(1, 1);
+            gl.glVertex2i(x + w, y);
+            gl.glTexCoord2f(1, 0);
+            gl.glVertex2i(x + w, y + h);
+            gl.glTexCoord2f(0, 0);
+            gl.glVertex2i(x, y + h);
+        }
+        gl.glEnd();
+    }
+}

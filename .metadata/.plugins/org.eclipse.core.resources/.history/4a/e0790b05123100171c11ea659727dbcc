@@ -1,0 +1,21 @@
+
+public class BackgroundNode{
+
+	public Background backgroundTile;
+	public BackgroundNode parent;
+	public BackgroundNode child;
+	
+	public BackgroundNode(Background backgroundTile, BackgroundNode parent, BackgroundNode child){
+		this.backgroundTile = backgroundTile;
+		this.parent = parent;
+		this.child = child;
+	}
+	
+	public Background getBackgroundTile(){return backgroundTile;}
+	public BackgroundNode getParent(){return parent;}
+	public BackgroundNode getChild(){return child;}
+	
+	public void setBackgroundTile(Background newTile){this.backgroundTile = newTile;}
+	public void setParent(BackgroundNode newParent){this.parent = newParent;}
+	public void setChild(BackgroundNode newChild){this.child = newChild;}
+}

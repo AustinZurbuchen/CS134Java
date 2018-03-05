@@ -1,0 +1,20 @@
+INDEX VERSION 1.129+C:\Users\azzbu_000\Dropbox\EclipseProjects\.metadata\.plugins\org.eclipse.jdt.core
+2546413145.index
+2827973200.index
+3068640910.index
+2538227533.index
+1334412443.index
+2137645919.index
+293692079.index
+124009058.index
+692810719.index
+318857592.index
+495217312.index
+2127866890.index
+3778645487.index
+3423988565.index
+1494953510.index
+2878849828.index
+3064462347.index
+4013218907.index
+154063598.index

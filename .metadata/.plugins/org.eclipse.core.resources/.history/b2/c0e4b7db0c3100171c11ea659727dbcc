@@ -1,0 +1,97 @@
+import java.util.ArrayList;
+
+public class JumpPointSearch {
+	
+	public static ArrayList<Background> identifySuccessor(Background current, Background start, Background end, Background[][] backgroundTiles, int[][] background){
+		ArrayList<Background> successors = new ArrayList<Background>();
+		ArrayList<Background> neighbors = new ArrayList<>(getNeighbors(current, backgroundTiles, background));
+		
+		for(int i = 0; i < neighbors.size(); i++){
+			int dx = neighbors.get(i).getXIndex() - current.getXIndex();
+			int dy = neighbors.get(i).getYIndex() - current.getYIndex();
+			
+			Background jumpPoint = jump(current.getXIndex(), current.getYIndex(), dx, dy, start, end);
+		}
+		
+		return successors;
+	}
+	
+	public static ArrayList<Background> getNeighbors(Background current, Background[][] backgroundTiles, int[][] background){
+		ArrayList<Background> neighbors = new ArrayList<Background>();
+		if(current.getYIndex() > 0){
+			// top left
+			if(!backgroundTiles[current.getYIndex()-1][current.getXIndex()-1].isCollidable()){
+				neighbors.add(backgroundTiles[current.getYIndex()-1][current.getXIndex()-1]);
+			}
+			// top
+			if(!backgroundTiles[current.getYIndex()-1][current.getXIndex()].isCollidable()){
+				neighbors.add(backgroundTiles[current.getYIndex()-1][current.getXIndex()]);
+			}
+			// top right
+			if(!backgroundTiles[current.getYIndex()-1][current.getXIndex()].isCollidable()){
+				neighbors.add(backgroundTiles[current.getYIndex()-1][current.getXIndex()]);
+			}
+		}
+		if(current.getXIndex() < background[current.getYIndex()].length){
+			// right top
+			if(!backgroundTiles[current.getYIndex()-1][current.getXIndex()].isCollidable()){
+				neighbors.add(backgroundTiles[current.getYIndex()-1][current.getXIndex()]);
+			}
+			//right
+			if(!backgroundTiles[current.getYIndex()-1][current.getXIndex()].isCollidable()){
+				neighbors.add(backgroundTiles[current.getYIndex()-1][current.getXIndex()]);
+			}
+			//right bottom
+			if(!backgroundTiles[current.getYIndex()-1][current.getXIndex()].isCollidable()){
+				neighbors.add(backgroundTiles[current.getYIndex()-1][current.getXIndex()]);
+			}
+		}
+		if(current.getYIndex() < background.length){
+			// bottom right
+			if(!backgroundTiles[current.getYIndex()-1][current.getXIndex()].isCollidable()){
+				neighbors.add(backgroundTiles[current.getYIndex()-1][current.getXIndex()]);
+			}
+			// bottom
+			if(!backgroundTiles[current.getYIndex()-1][current.getXIndex()].isCollidable()){
+				neighbors.add(backgroundTiles[current.getYIndex()-1][current.getXIndex()]);
+			}
+			// bottom left
+			if(!backgroundTiles[current.getYIndex()-1][current.getXIndex()].isCollidable()){
+				neighbors.add(backgroundTiles[current.getYIndex()-1][current.getXIndex()]);
+			}
+		}
+		if(current.getYIndex() > 0){
+			// left bottom
+			if(!backgroundTiles[current.getYIndex()-1][current.getXIndex()].isCollidable()){
+				neighbors.add(backgroundTiles[current.getYIndex()-1][current.getXIndex()]);
+			}
+			// left
+			if(!backgroundTiles[current.getYIndex()-1][current.getXIndex()].isCollidable()){
+				neighbors.add(backgroundTiles[current.getYIndex()-1][current.getXIndex()]);
+			}
+			// left top
+			if(!backgroundTiles[current.getYIndex()-1][current.getXIndex()].isCollidable()){
+				neighbors.add(backgroundTiles[current.getYIndex()-1][current.getXIndex()]);
+			}
+		}
+		return neighbors;
+	}
+	
+	public static Background jump(int cx, int cy, int dx, int dy, Background start, Background end, Background[][] background){
+		int nextX = cx + dx;
+		int nextY = cy + dy;
+		
+		if(background[nextY][nextX].isCollidable()){return null;}
+		
+		if(nextX == end.getXIndex() && nextY == end.getYIndex()){return background[nextY][nextY];}
+		
+		if(dx != 0 && dy != 0){
+			
+		}
+	}
+	
+//	public static int getDirection(int diff, int neg, int pos){
+//
+//	}
+	
+}

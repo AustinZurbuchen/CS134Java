@@ -1,0 +1,59 @@
+import java.util.ArrayList;
+import java.util.PriorityQueue;
+
+public class PathFinder {
+	private int[][] background;
+	private Background[][] backgroundTiles;
+	private BackgroundNode[][] backgroundGrid;
+	private BackgroundNode start, end;
+	private PriorityQueue openList;
+	private ArrayList<Background> closedList;
+	
+	public PathFinder(int[][] bg, Background[][] backgroundTiles, BackgroundNode[][] backgroundGrid, BackgroundNode start, BackgroundNode end){
+		background = bg;
+		this.backgroundTiles = backgroundTiles;
+		this.backgroundGrid = backgroundGrid;
+		this.start = start;
+		this.end = end;
+	}
+	
+	public void addNeighbor(BackgroundNode node, boolean curCorners){
+		int x = node.getBackgroundTile().getXIndex();
+		int y = node.getBackgroundTile().getYIndex();
+		for(int dy = -1; dy <= 1; dy++){
+			for(int dx = 1; dy >= -1; dx--){
+				BackgroundNode neighbor = backgroundGrid[x + dx][y + dy];
+				if(!neighbor.getBackgroundTile().isCollidable()){
+					if(!openList.contains(neighbor)){
+						calculateNodeScore(neighbor);
+						openList.add(neighbor);
+					} else if(calculateGScore(node, neighbor) + node.getGScore() < neighbor.getGScore()){
+						neighbor.setParent(node);
+						calculateNodeScore(neighbor);
+					}
+				}
+			}
+		}
+	}
+	
+	public void calculateNodeScore(BackgroundNode node){
+		int manhattan = Math.abs(end.getBackgroundTile().getXIndex() - node.getBackgroundTile().getXIndex()) * 10 + Math.abs(end.getBackgroundTile().getYIndex() - node.getBackgroundTile().getYIndex()) * 10;
+		node.setHScore(manhattan);
+		BackgroundNode parent = (BackgroundNode)node.getParent();
+		node.setGScore(parent.getGScore() + calculateGScore(node, parent));
+	}
+	
+	public int calculateGScore(BackgroundNode newNode, BackgroundNode oldNode){
+		int dx = newNode.getBackgroundTile().getXIndex() - oldNode.getBackgroundTile().getXIndex();
+		int dy = newNode.getBackgroundTile().getYIndex() - oldNode.getBackgroundTile().getYIndex();
+		
+		if(dx == 0 || dy == 0){
+			return Math.abs(10 * Math.max(dx,  dy));
+		} else {
+			return Math.abs(14 * Math.max(dx,  dy));
+		}
+	}
+	
+	
+
+}

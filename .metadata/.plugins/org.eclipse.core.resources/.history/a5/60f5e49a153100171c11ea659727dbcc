@@ -1,0 +1,25 @@
+
+public class BackgroundNode{
+
+	public Background backgroundTile;
+	public BackgroundNode parent;
+	public BackgroundNode child;
+	public int nodeScore;
+	public int gScore;
+	
+	public BackgroundNode(Background backgroundTile){
+		this.backgroundTile = backgroundTile;
+	}
+	
+	public Background getBackgroundTile(){return backgroundTile;}
+	public BackgroundNode getParent(){return parent;}
+	public BackgroundNode getChild(){return child;}
+	public int getNodeScore(){return nodeScore;}
+	public int getGScore(){return gScore;}
+	
+	public void setBackgroundTile(Background newTile){this.backgroundTile = newTile;}
+	public void setParent(BackgroundNode newParent){this.parent = newParent;}
+	public void setChild(BackgroundNode newChild){this.child = newChild;}
+	public void setNodeScore(int newNodeScore){this.nodeScore = newNodeScore;}
+	public void setGScore(int newGScore){this.nodeScore = newGScore;}
+}
